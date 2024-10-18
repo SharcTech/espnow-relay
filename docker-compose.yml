@@ -1,0 +1,47 @@
+services:
+  espythonow:
+    hostname: espnow-relay
+    container_name: espnow-relay
+    image: ladder99/espnow-relay:latest
+    restart: unless-stopped
+    command: python3 -u main.py
+    network_mode: host
+    cap_add:
+      - NET_RAW
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=20
+      - INTERFACE=wlxc01c3038d5a8
+    stop_grace_period: 10s
+    stop_signal: SIGTERM
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "20m"
+
+  dozzle:
+    hostname: dozzle
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    networks:
+      - espnow
+    ports:
+      - "8080:8080/tcp"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "1"
+        max-size: "20m"
+
+networks:
+  espnow:
+    name: espnow
