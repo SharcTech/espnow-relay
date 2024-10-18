@@ -36,13 +36,19 @@ class TrafficSniffer:
 
         # feed_task = asyncio.create_task(self._feed_task())
         broker_task = asyncio.create_task(self._broker.run())
-        await asyncio.gather(broker_task)
+        receive_task = asyncio.create_task(self._receive_task())
+        await asyncio.gather(broker_task, receive_task)
 
     async def _setup_task(self):
         self._logger.info("[setup]")
 
         #self._espnow = ESPythoNow(interface=self._interface, accept_all=True, callback=self._espnow_message_callback)
         #self._espnow.start()
+
+    async def _receive_task(self):
+        while True:
+            asyncio.sleep(0.1)
+
 
     #async def _feed_task(self):
     #    counter = 1
