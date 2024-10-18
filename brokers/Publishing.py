@@ -29,6 +29,7 @@ class Publishing:
 
     async def run(self):
         self._task = asyncio.create_task(self._broker_task())
+        return self._task
 
     async def publish(self, topic: str, payload: str, qos: int = 0, retain: bool = False):
         await self._queue.put({

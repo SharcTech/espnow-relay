@@ -36,8 +36,8 @@ class TrafficSniffer:
 
         # feed_task = asyncio.create_task(self._feed_task())
         broker_task = asyncio.create_task(self._broker.run())
-        receive_task = asyncio.create_task(self._receive_task())
-        await asyncio.gather(broker_task, receive_task)
+        #receive_task = asyncio.create_task(self._receive_task())
+        await asyncio.gather(broker_task)
 
     async def _setup_task(self):
         self._logger.info("[setup]")
@@ -47,8 +47,7 @@ class TrafficSniffer:
 
     async def _receive_task(self):
         while True:
-            asyncio.sleep(0.1)
-
+            await asyncio.sleep(0.1)
 
     #async def _feed_task(self):
     #    counter = 1
