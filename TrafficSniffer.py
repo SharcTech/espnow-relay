@@ -36,7 +36,7 @@ class TrafficSniffer:
 
         feed_task = asyncio.create_task(self._feed_task())
         broker_task = asyncio.create_task(self._broker.run())
-        await asyncio.gather(broker_task)
+        await asyncio.gather(feed_task, broker_task)
 
     async def _setup_task(self):
         self._logger.info("[setup]")
@@ -48,7 +48,7 @@ class TrafficSniffer:
         counter = 1
         while True:
             await asyncio.sleep(4)
-            self._broker("feed/task", "feeding {}".format(counter))
+            self._broker.publish("feed/task", "feeding {}".format(counter))
             counter = counter + 1
 
     def _espnow_message_callback(self, from_mac, to_mac, msg):
