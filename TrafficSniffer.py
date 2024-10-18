@@ -41,8 +41,8 @@ class TrafficSniffer:
     async def _setup_task(self):
         self._logger.info("[setup]")
 
-        self._espnow = ESPythoNow(interface=self._interface, accept_all=True, callback=self._espnow_message_callback)
-        self._espnow.start()
+        #self._espnow = ESPythoNow(interface=self._interface, accept_all=True, callback=self._espnow_message_callback)
+        #self._espnow.start()
 
     #async def _feed_task(self):
     #    counter = 1
@@ -51,6 +51,6 @@ class TrafficSniffer:
     #        await self._broker.publish("feed/task", "feeding {}".format(counter))
     #        counter = counter + 1
 
-    def _espnow_message_callback(self, from_mac, to_mac, msg):
+    def _espnow_message_callback(from_mac, to_mac, msg):
         print("ESP-NOW message from %s to %s: %s" % (from_mac, to_mac, msg))
-        self._broker.publish("espnow/{}".format(from_mac), msg.decode('utf-8'))
+        #self._broker.publish("espnow/{}".format(from_mac), msg.decode('utf-8'))
