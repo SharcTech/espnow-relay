@@ -42,8 +42,8 @@ class TrafficSniffer:
     async def _setup_task(self):
         self._logger.info("[setup]")
 
-        #self._espnow = ESPythoNow(interface=self._interface, accept_all=True, callback=self._espnow_message_callback)
-        #self._espnow.start()
+        self._espnow = ESPythoNow(interface=self._interface, accept_all=True, callback=self._espnow_message_callback)
+        self._espnow.start()
 
     async def _receive_task(self):
         while True:
