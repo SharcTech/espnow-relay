@@ -20,6 +20,5 @@ docker logout
 ```
 docker compose \
   -f ~/espnow-relay/docker-compose.yml \
-  --env-file ~/espnow-relay/.env \
   up -d --force-recreate
 ```

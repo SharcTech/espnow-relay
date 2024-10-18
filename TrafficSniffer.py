@@ -34,14 +34,22 @@ class TrafficSniffer:
             reconnect_s=5,
             cancellation_event=self._cancellation_event)
 
+        feed_task = asyncio.create_task(self._feed_task())
         broker_task = asyncio.create_task(self._broker.run())
         await asyncio.gather(broker_task)
 
     async def _setup_task(self):
         self._logger.info("[setup]")
 
-        self._espnow = ESPythoNow(interface=self._interface, accept_all=True, callback=self._espnow_message_callback)
-        self._espnow.start()
+        #self._espnow = ESPythoNow(interface=self._interface, accept_all=True, callback=self._espnow_message_callback)
+        #self._espnow.start()
+
+    async def _feed_task(self):
+        counter = 1
+        while True:
+            await asyncio.sleep(4)
+            self._broker("feed/task", "feeding {}".format(counter))
+            counter = counter + 1
 
     def _espnow_message_callback(self, from_mac, to_mac, msg):
         print("ESP-NOW message from %s to %s: %s" % (from_mac, to_mac, msg))
