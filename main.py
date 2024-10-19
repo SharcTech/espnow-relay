@@ -14,19 +14,19 @@ async def main():
     from_esp_queue = Queue()
     to_esp_queue = Queue()
 
-    from ESPNOWTask import ESPNOWTask
+    from Tasks.ESPNOWTask import ESPNOWTask
     tasks.append(asyncio.create_task(ESPNOWTask(
         from_esp_queue=from_esp_queue,
         to_esp_queue=to_esp_queue,
         interface="wlxc01c3038d5a8"
     ).run()))
 
-    from ToESPSimulator import ToESPSimulator
+    from Tasks.ToESPSimulator import ToESPSimulator
     tasks.append(asyncio.create_task(ToESPSimulator(
         to_esp_queue=to_esp_queue
     ).run()))
 
-    from MoveToBrokerTask import MoveToBrokerTask
+    from Tasks.MoveToBrokerTask import MoveToBrokerTask
     tasks.append(asyncio.create_task(MoveToBrokerTask(
         from_esp_queue=from_esp_queue,
         broker_ip="sharc.tech",
@@ -34,15 +34,6 @@ async def main():
         broker_username=None,
         broker_password=None
     ).run()))
-
-    #from TrafficSniffer import TrafficSniffer
-    #tasks.append(asyncio.create_task(TrafficSniffer(
-    #    broker_ip="sharc.tech",
-    #    broker_port=1883,
-    #    broker_username=None,
-    #    broker_password=None,
-    #    interface="wlxc01c3038d5a8"
-    #).run()))
 
     await asyncio.gather(*tasks)
 

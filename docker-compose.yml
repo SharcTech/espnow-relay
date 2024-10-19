@@ -15,6 +15,10 @@ services:
       - PYTHONUNBUFFERED=1
       - LOG_LEVEL=20
       - INTERFACE=wlxc01c3038d5a8
+      - BROKER_IP=sharc.tech
+      - BROKER_PORT=1883
+      - BROKER_USERNAME=
+      - BROKER_PASSWORD=
     stop_grace_period: 10s
     stop_signal: SIGTERM
     logging:

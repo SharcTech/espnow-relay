@@ -1,5 +1,4 @@
 import uuid
-import json
 import logging
 import asyncio
 from asyncio import Queue
@@ -34,10 +33,11 @@ class ESPNOWTask:
 
         while True:
             message = await self._to_esp_queue.get()
+            print("ESP-NOW SEND to: %s, msg: %s" % (message["to_mac"], message["message"]))
             self._espnow.send(message["to_mac"], message["message"])
 
     def _espnow_message_callback(self, from_mac, to_mac, msg):
-        print("ESP-NOW message from %s to %s: %s" % (from_mac, to_mac, msg))
+        print("ESP-NOW RECV from: %s, to: %s, msg: %s" % (from_mac, to_mac, msg))
         message = {
             "from_mac": from_mac,
             "to_mac": to_mac,

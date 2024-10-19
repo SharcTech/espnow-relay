@@ -1,9 +1,7 @@
 import uuid
-import json
 import logging
 import asyncio
 from asyncio import Queue
-from ESPythoNOW import *
 
 
 class ToESPSimulator:
@@ -25,17 +23,15 @@ class ToESPSimulator:
         self._logger.info("[setup]")
 
     async def _send_task(self):
-        self._logger.info("[receive_task]")
+        self._logger.info("[send_task]")
 
         while True:
             await asyncio.sleep(10)
             message = {
                 'from_mac': "FF:FF:FF:FF:FF:FF",
                 'to_mac': "FF:FF:FF:FF:FF:FF",
-                # 'message': "counter".format(self._counter).encode('utf-8')
-                'message': b'|1|CMD|PING'
+                'message': b'|0|CMD|PING'
             }
-            self._counter = self._counter + 1
             await self._to_esp_queue.put(message)
 
 
