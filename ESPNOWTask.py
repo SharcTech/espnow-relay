@@ -44,4 +44,8 @@ class ESPNOWTask:
             "message": msg
         }
 
-        self._from_esp_queue.put(message)
+        asyncio.create_task(self._espnow_message_callback_async(message))
+
+    async def _espnow_message_callback_async(self, message):
+        print("ESP-NOW  ASYNC message from %s to %s: %s" % (from_mac, to_mac, msg))
+        await self._from_esp_queue.put(message)
