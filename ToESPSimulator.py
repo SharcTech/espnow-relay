@@ -30,8 +30,8 @@ class ToESPSimulator:
         while True:
             await asyncio.sleep(3)
             message = {
-                'from_mac': "\xff\xff\xff\xff\xff\xff",
-                'to_mac': "\xff\xff\xff\xff\xff\xff",
+                'from_mac': "FF:FF:FF:FF:FF:FF",
+                'to_mac': "FF:FF:FF:FF:FF:FF",
                 'message': "counter".format(self._counter).encode('utf-8')
             }
             self._counter = self._counter + 1
