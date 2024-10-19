@@ -8,7 +8,7 @@ git clone https://$(cat ~/secret.ghuser):$(cat ~/secret.ghpat)@github.com/SharcT
 ## build image
 
 ```
-export BUILD_VERSION=0.1.2
+export BUILD_VERSION=0.1.3
 docker build -f ~/espnow-relay/Dockerfile --tag=ladder99/espnow-relay:latest --tag=ladder99/espnow-relay:$BUILD_VERSION ~/espnow-relay
 cat ~/secret.dhpass| docker login --username ladder99 --password-stdin
 docker push ladder99/espnow-relay --all-tags

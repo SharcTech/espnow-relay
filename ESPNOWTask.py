@@ -36,7 +36,7 @@ class ESPNOWTask:
             message = await self._to_esp_queue.get()
             self._espnow.send(message["to_mac"], message["message"])
 
-    def _espnow_message_callback(self, from_mac, to_mac, msg):
+    async def _espnow_message_callback(self, from_mac, to_mac, msg):
         print("ESP-NOW message from %s to %s: %s" % (from_mac, to_mac, msg))
         message = {
             "from_mac": from_mac,
@@ -44,7 +44,8 @@ class ESPNOWTask:
             "message": msg
         }
 
-        asyncio.create_task(self._espnow_message_callback_async(message))
+        await self._from_esp_queue.put(message)
+        #asyncio.create_task(self._espnow_message_callback_async(message))
 
     async def _espnow_message_callback_async(self, message):
         print("ESP-NOW  ASYNC message from %s to %s: %s" % (from_mac, to_mac, msg))
