@@ -32,7 +32,8 @@ class ToESPSimulator:
             message = {
                 'from_mac': "FF:FF:FF:FF:FF:FF",
                 'to_mac': "FF:FF:FF:FF:FF:FF",
-                'message': "counter".format(self._counter).encode('utf-8')
+                # 'message': "counter".format(self._counter).encode('utf-8')
+                'message': '|1|CMD|PING'
             }
             self._counter = self._counter + 1
             await self._to_esp_queue.put(message)
