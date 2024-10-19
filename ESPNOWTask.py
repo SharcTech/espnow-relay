@@ -44,7 +44,7 @@ class ESPNOWTask:
             "message": msg
         }
 
-        self._from_esp_queue.put(message)
+        self._from_esp_queue.put_nowait(message)
         #asyncio.create_task(self._espnow_message_callback_async(message))
         #loop = asyncio.get_event_loop()
         #loop.create_task(self._espnow_message_callback_async(message))
