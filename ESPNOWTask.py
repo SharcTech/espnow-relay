@@ -9,8 +9,8 @@ from ESPythoNOW import *
 class ESPNOWTask:
     def __init__(self, interface, to_esp_queue, from_esp_queue):
         self._interface = interface
-        self._in_queue: Queue = to_esp_queue
-        self._out_queue: Queue = from_esp_queue
+        self._to_esp_queue: Queue = to_esp_queue
+        self._from_esp_queue: Queue = from_esp_queue
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
         self._espnow = None
@@ -33,7 +33,7 @@ class ESPNOWTask:
         self._logger.info("[receive_task]")
 
         while True:
-            message = await self._queue.get()
+            message = await self._to_esp_queue.get()
             self._espnow.send(message["to_mac"], message["message"])
 
     async def _espnow_message_callback(self, from_mac, to_mac, msg):
@@ -44,4 +44,4 @@ class ESPNOWTask:
             "message": msg
         }
 
-        await self._out_queue.put(message)
+        await self._from_esp_queue.put(message)
