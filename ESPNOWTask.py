@@ -36,7 +36,7 @@ class ESPNOWTask:
             message = await self._to_esp_queue.get()
             self._espnow.send(message["to_mac"], message["message"])
 
-    async def _espnow_message_callback(self, from_mac, to_mac, msg):
+    def _espnow_message_callback(self, from_mac, to_mac, msg):
         print("ESP-NOW message from %s to %s: %s" % (from_mac, to_mac, msg))
         message = {
             "from_mac": from_mac,
@@ -44,4 +44,4 @@ class ESPNOWTask:
             "message": msg
         }
 
-        await self._from_esp_queue.put(message)
+        self._from_esp_queue.put(message)
