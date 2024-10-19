@@ -21,6 +21,11 @@ async def main():
         interface="wlxc01c3038d5a8"
     ).run()))
 
+    from ToESPSimulator import ToESPSimulator
+    tasks.append(asyncio.create_task(ToESPSimulator(
+        to_esp_queue=to_esp_queue
+    ).run()))
+
     #from TrafficSniffer import TrafficSniffer
     #tasks.append(asyncio.create_task(TrafficSniffer(
     #    broker_ip="sharc.tech",
