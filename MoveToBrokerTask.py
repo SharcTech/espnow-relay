@@ -28,7 +28,7 @@ class MoveToBrokerTask:
         self._logger.info("[setup]")
 
     async def _broker_task(self):
-        self._logger.info("[broker] connecting %s:%d", self._cluster_record["broker"]["ip"], self._cluster_record["broker"]["port"])
+        self._logger.info("[broker] connecting")
 
         try:
             async with aiomqtt.Client(
