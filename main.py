@@ -4,7 +4,7 @@ import logging
 import asyncio
 from asyncio import Queue
 
-logging.basicConfig(level=20)
+logging.basicConfig(level=int(os.getenv("LOG_LEVEL", 20)))
 logger = logging.getLogger("main")
 logger.info("espnow-relay starting")
 
@@ -18,7 +18,7 @@ async def main():
     tasks.append(asyncio.create_task(ESPNOWTask(
         from_esp_queue=from_esp_queue,
         to_esp_queue=to_esp_queue,
-        interface="wlxc01c3038d5a8"
+        interface=str(os.getenv("INTERFACE", "wlxc01c3038d5a8"))
     ).run()))
 
     from Tasks.ToESPSimulator import ToESPSimulator
@@ -29,10 +29,10 @@ async def main():
     from Tasks.MoveToBrokerTask import MoveToBrokerTask
     tasks.append(asyncio.create_task(MoveToBrokerTask(
         from_esp_queue=from_esp_queue,
-        broker_ip="sharc.tech",
-        broker_port=1883,
-        broker_username=None,
-        broker_password=None
+        broker_ip=str(os.getenv("BROKER_IP", "sharc.tech")),
+        broker_port=int(os.getenv("BROKER_PORT", 1883)),
+        broker_username=str(os.getenv("BROKER_USERNAME", None)),
+        broker_password=str(os.getenv("BROKER_PASSWORD", None))
     ).run()))
 
     await asyncio.gather(*tasks)

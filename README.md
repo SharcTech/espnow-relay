@@ -18,7 +18,7 @@ git clone https://$(cat ~/secret.ghuser):$(cat ~/secret.ghpat)@github.com/SharcT
 ## build image
 
 ```
-export BUILD_VERSION=1.0.0
+export BUILD_VERSION=1.1.0
 docker build -f ~/espnow-relay/Dockerfile --tag=ladder99/espnow-relay:latest --tag=ladder99/espnow-relay:$BUILD_VERSION ~/espnow-relay
 cat ~/secret.dhpass| docker login --username ladder99 --password-stdin
 docker push ladder99/espnow-relay --all-tags
@@ -33,4 +33,15 @@ docker compose \
   -f ~/espnow-relay/docker-compose.yml \
   up -d --force-recreate
 ```
+
+
+## edgeshark
+
+```
+wget -q --no-cache -O - \
+  https://github.com/siemens/edgeshark/raw/main/deployments/wget/docker-compose.yaml \
+  | DOCKER_DEFAULT_PLATFORM= docker compose -f - up
+```
+
+
 
