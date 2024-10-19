@@ -28,7 +28,7 @@ class ToESPSimulator:
         self._logger.info("[receive_task]")
 
         while True:
-            await asyncio.sleep(3)
+            await asyncio.sleep(10)
             message = {
                 'from_mac': "FF:FF:FF:FF:FF:FF",
                 'to_mac': "FF:FF:FF:FF:FF:FF",

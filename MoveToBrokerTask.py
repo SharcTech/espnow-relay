@@ -43,7 +43,6 @@ class MoveToBrokerTask:
                 self._logger.info("[broker] connected")
 
                 while True:
-                    print('wait message')
                     message = await self._queue.get()
                     topic = f"espnow/{message['from_mac']}"
                     payload = message['message']
