@@ -11,7 +11,7 @@ class ToESPSimulator:
         self._to_esp_queue: Queue = to_esp_queue
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
-        self._counter = 1
+        self._counter = 100
 
     async def run(self):
         self._logger.info("[run]")
@@ -32,7 +32,7 @@ class ToESPSimulator:
             message = {
                 'from_mac': "\xff\xff\xff\xff\xff\xff",
                 'to_mac': "\xff\xff\xff\xff\xff\xff",
-                'message': "count|{}".format(self._counter)
+                'message': "counter".format(self._counter).encode('utf-8')
             }
             self._counter = self._counter + 1
             await self._to_esp_queue.put(message)
