@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import asyncio
+from asyncio import Queue
 
 logging.basicConfig(level=20)
 logger = logging.getLogger("main")
@@ -10,14 +11,24 @@ logger.info("espnow-relay starting")
 async def main():
     tasks = []
 
-    from TrafficSniffer import TrafficSniffer
-    tasks.append(asyncio.create_task(TrafficSniffer(
-        broker_ip="sharc.tech",
-        broker_port=1883,
-        broker_username=None,
-        broker_password=None,
+    from_esp_queue = Queue()
+    to_esp_queue = Queue()
+
+    from ESPNOWTask import ESPNOWTask
+    tasks.append(asyncio.create_task(ESPNOWTask(
+        from_esp_queue=from_esp_queue,
+        to_esp_queue=to_esp_queue,
         interface="wlxc01c3038d5a8"
     ).run()))
+
+    #from TrafficSniffer import TrafficSniffer
+    #tasks.append(asyncio.create_task(TrafficSniffer(
+    #    broker_ip="sharc.tech",
+    #    broker_port=1883,
+    #    broker_username=None,
+    #    broker_password=None,
+    #    interface="wlxc01c3038d5a8"
+    #).run()))
 
     await asyncio.gather(*tasks)
 
