@@ -26,6 +26,15 @@ async def main():
         to_esp_queue=to_esp_queue
     ).run()))
 
+    from MoveToBrokerTask import MoveToBrokerTask
+    tasks.append(asyncio.create_task(MoveToBrokerTask(
+        from_esp_queue=from_esp_queue,
+        broker_ip="sharc.tech",
+        broker_port=1883,
+        broker_username=None,
+        broker_password=None
+    ).run()))
+
     #from TrafficSniffer import TrafficSniffer
     #tasks.append(asyncio.create_task(TrafficSniffer(
     #    broker_ip="sharc.tech",
