@@ -46,53 +46,56 @@ class MoveToBrokerTask:
 
                 async for message in self._queue.subscribe():
                     from_mac = message['from_mac'].replace(":","").lower()
-                    message_segments = [item for item in message['message'].split("|") if item]
 
-                    message_topic = None
-                    message_payload = None
-                    message_retain = False
-                    message_sequence = message_segments[0]
-                    message_type = message_segments[1].upper()
-                    message_subtype = message_segments[2].upper()
-                    if message_type == 'EVT' and message_subtype == 'AVAIL':
-                        message_retain = True
-                        message_topic = f"sharc/{from_mac}/evt/avail"
-                        message_payload = {
-                            "seq": message_sequence,
-                            "v": True if message_segments[3] == 1 else False,
-                            "p2p": True
-                        }
-                    elif message_type == 'EVT' and message_subtype == 'IO':
-                        sensor_type = message_segments[3].upper()
-                        sensor_id = 's0' if sensor_type == 'PNP' else \
-                                            's1' if sensor_type == 'NPN' else \
-                                            's2' if sensor_type == '0-10V' else \
-                                            's3' if sensor_type == '4-20MA' else \
-                                            sensor_type.lower()
-                        message_topic = f"sharc/{from_mac}/evt/io/{sensor_id}"
-                        message_payload = {
-                            "seq": message_segments[0],
-                            "v": message_segments[4],
-                            "d": message_segments[5]
-                        }
-                    elif message_type == 'EVT' and message_subtype == 'ACK':
-                        message_topic = f"sharc/{from_mac}/evt/ack"
-                        message_payload = {
-                            "seq": message_segments[0],
-                            "v": {
-                                "id": message_segments[3],
-                                "rc": 0
+                    try:
+                        message_segments = [item for item in message['message'].decode('utf-8').split("|") if item]
+                        message_topic = None
+                        message_payload = None
+                        message_retain = False
+                        message_sequence = message_segments[0]
+                        message_type = message_segments[1].upper()
+                        message_subtype = message_segments[2].upper()
+                        if message_type == 'EVT' and message_subtype == 'AVAIL':
+                            message_retain = True
+                            message_topic = f"sharc/{from_mac}/evt/avail"
+                            message_payload = {
+                                "seq": message_sequence,
+                                "v": True if message_segments[3] == 1 else False,
+                                "p2p": True
                             }
-                        }
-                    else:
-                        message_topic = f"sharc/{from_mac}/unk"
-                        message_payload = {
-                            "seq": message_segments[0],
-                            "v": message_segments
-                        }
+                        elif message_type == 'EVT' and message_subtype == 'IO':
+                            sensor_type = message_segments[3].upper()
+                            sensor_id = 's0' if sensor_type == 'PNP' else \
+                                                's1' if sensor_type == 'NPN' else \
+                                                's2' if sensor_type == '0-10V' else \
+                                                's3' if sensor_type == '4-20MA' else \
+                                                sensor_type.lower()
+                            message_topic = f"sharc/{from_mac}/evt/io/{sensor_id}"
+                            message_payload = {
+                                "seq": message_segments[0],
+                                "v": message_segments[4],
+                                "d": message_segments[5]
+                            }
+                        elif message_type == 'EVT' and message_subtype == 'ACK':
+                            message_topic = f"sharc/{from_mac}/evt/ack"
+                            message_payload = {
+                                "seq": message_segments[0],
+                                "v": {
+                                    "id": message_segments[3],
+                                    "rc": 0
+                                }
+                            }
+                        else:
+                            message_topic = f"sharc/{from_mac}/unk"
+                            message_payload = {
+                                "seq": message_segments[0],
+                                "v": message_segments
+                            }
 
-                    await client.publish(message_topic, json.dumps(message_payload), retain=message_retain)
-                    self._logger.debug("[broker] sent topic:%s, payload:%s",message_topic, message_payload)
+                        await client.publish(message_topic, json.dumps(message_payload), retain=message_retain)
+                        self._logger.debug("[broker] sent topic:%s, payload:%s",message_topic, message_payload)
+                    except:
+                        self._logger.warn("[broker] failed parser, message:%s", message['message'])
 
         except MqttError as e:
             self._logger.error("[broker] failed")
