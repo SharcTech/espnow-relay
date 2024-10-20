@@ -58,6 +58,13 @@ class MaintainPeerList:
                             'pong': time.monotonic()
                         }
                         self._logger.info(f"Peer added: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
+                        # fake birth certificate
+                        message = {
+                            'from_mac': message['from_mac'],
+                            'to_mac': "FF:FF:FF:FF:FF:FF",
+                            'message': b'|0|EVT|AVAIL|1'
+                        }
+                        await self._from_esp_queue.put(message)
             except:
                 self._logger.warning("[receive_task] failed parser, message:%s", message['message'])
 
