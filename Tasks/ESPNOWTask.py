@@ -31,8 +31,7 @@ class ESPNOWTask:
     async def _receive_task(self):
         self._logger.info("[receive_task]")
 
-        while True:
-            message = await self._to_esp_queue.subscribe()
+        async for message in self._to_esp_queue.subscribe():
             print("ESP-NOW SEND to: %s, msg: %s" % (message["to_mac"], message["message"]))
             self._espnow.send(message["to_mac"], message["message"])
 

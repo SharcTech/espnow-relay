@@ -3,7 +3,6 @@ import json
 import logging
 import asyncio
 from asyncio_multisubscriber_queue import MultisubscriberQueue
-
 import aiomqtt
 from aiomqtt import MqttError
 
@@ -45,8 +44,7 @@ class MoveToBrokerTask:
 
                 self._logger.info("[broker] connected")
 
-                while True:
-                    message = await self._queue.subscribe()
+                async for message in self._queue.subscribe():
                     from_mac = message['from_mac'].replace(":","").lower()
                     message_segments = [item for item in message['message'].split("|") if item]
 
