@@ -30,11 +30,24 @@ async def main():
         broker_password=str(os.getenv("BROKER_PASSWORD", None))
     ).run()))
 
-    from Tasks.MaintainPeerList import MaintainPeerList
-    tasks.append(asyncio.create_task(MaintainPeerList(
-        from_esp_queue=from_esp_queue,
-        to_esp_queue=to_esp_queue
-    ).run()))
+    if int(os.getenv("ESP_TO_BROKER_CUSTOM", 0)) == 1:
+        from Tasks.MoveToBrokerCustomTask import MoveToBrokerCustomTask
+        tasks.append(asyncio.create_task(MoveToBrokerCustomTask(
+            from_esp_queue=from_esp_queue,
+            broker_ip=str(os.getenv("BROKER_IP", "sharc.tech")),
+            broker_port=int(os.getenv("BROKER_PORT", 1883)),
+            broker_username=str(os.getenv("BROKER_USERNAME", None)),
+            broker_password=str(os.getenv("BROKER_PASSWORD", None))
+        ).run()))
+
+        from Tasks.MaintainPeerList import MaintainPeerList
+        tasks.append(asyncio.create_task(MaintainPeerList(
+            from_esp_queue=from_esp_queue,
+            to_esp_queue=to_esp_queue
+        ).run()))
+
+    if int(os.getenv("BROKER_TO_ESP_CUSTOM", 0)) == 1:
+        pass
 
     #from Tasks.ToESPSimulator import ToESPSimulator
     #tasks.append(asyncio.create_task(ToESPSimulator(
