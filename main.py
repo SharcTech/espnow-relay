@@ -21,11 +21,6 @@ async def main():
         interface=str(os.getenv("INTERFACE", "wlxc01c3038d5a8"))
     ).run()))
 
-    from Tasks.ToESPSimulator import ToESPSimulator
-    tasks.append(asyncio.create_task(ToESPSimulator(
-        to_esp_queue=to_esp_queue
-    ).run()))
-
     from Tasks.MoveToBrokerTask import MoveToBrokerTask
     tasks.append(asyncio.create_task(MoveToBrokerTask(
         from_esp_queue=from_esp_queue,
@@ -33,6 +28,16 @@ async def main():
         broker_port=int(os.getenv("BROKER_PORT", 1883)),
         broker_username=str(os.getenv("BROKER_USERNAME", None)),
         broker_password=str(os.getenv("BROKER_PASSWORD", None))
+    ).run()))
+
+    from Tasks.MaintainPeerList import MaintainPeerList
+    tasks.append(asyncio.create_task(MaintainPeerList(
+        from_esp_queue=from_esp_queue
+    ).run()))
+
+    from Tasks.ToESPSimulator import ToESPSimulator
+    tasks.append(asyncio.create_task(ToESPSimulator(
+        to_esp_queue=to_esp_queue
     ).run()))
 
     await asyncio.gather(*tasks)
