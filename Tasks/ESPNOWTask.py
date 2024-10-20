@@ -1,7 +1,7 @@
 import uuid
 import logging
 import asyncio
-from asyncio_multisubscriber_queue import MultisubscriberQueue
+from libs.asyncio_multisubscriber_queue import MultisubscriberQueue
 from ESPythoNOW import *
 
 
@@ -43,4 +43,4 @@ class ESPNOWTask:
             "message": msg
         }
 
-        self._from_esp_queue.put(message)
+        self._from_esp_queue.put_nowait(message)

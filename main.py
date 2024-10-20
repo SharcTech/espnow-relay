@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 import asyncio
-from asyncio_multisubscriber_queue import MultisubscriberQueue
+from libs.asyncio_multisubscriber_queue import MultisubscriberQueue
 
 logging.basicConfig(level=int(os.getenv("LOG_LEVEL", 20)))
 logger = logging.getLogger("main")
@@ -36,6 +36,9 @@ async def main():
     ).run()))
 
     await asyncio.gather(*tasks)
+
+    from_esp_queue.close()
+    to_esp_queue.close()
 
 
 

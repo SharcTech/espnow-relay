@@ -2,7 +2,7 @@ import uuid
 import json
 import logging
 import asyncio
-from asyncio_multisubscriber_queue import MultisubscriberQueue
+from libs.asyncio_multisubscriber_queue import MultisubscriberQueue
 import aiomqtt
 from aiomqtt import MqttError
 

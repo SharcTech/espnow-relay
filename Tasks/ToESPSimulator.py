@@ -1,7 +1,7 @@
 import uuid
 import logging
 import asyncio
-from asyncio_multisubscriber_queue import MultisubscriberQueue
+from libs.asyncio_multisubscriber_queue import MultisubscriberQueue
 
 
 class ToESPSimulator:
