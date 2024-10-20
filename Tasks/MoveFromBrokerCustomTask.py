@@ -50,10 +50,10 @@ class MoveFromBrokerCustomTask:
                     keepalive=60)
 
             async with client:
-                self.logger.info("connected")
+                self._logger.info("connected")
 
                 for topic in topics:
-                    self.logger.debug("subscribing: %s", topic["topic"])
+                    self._logger.debug("subscribing: %s", topic["topic"])
                     await client.subscribe(
                         topic=topic["topic"],
                         qos=topic["qos"] if "qos" in topic else 0)
@@ -61,7 +61,7 @@ class MoveFromBrokerCustomTask:
                 async for message in client.messages:
                     topic = message.topic.value
                     payload = message.payload.decode('utf-8')
-                    self.logger.debug("received on:%s, data:%s", topic, payload)
+                    self._logger.debug("received on:%s, data:%s", topic, payload)
 
                     try:
                         serial = message["topic"].split("/", 2)[1]
