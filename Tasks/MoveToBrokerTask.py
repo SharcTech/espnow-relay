@@ -60,7 +60,7 @@ class MoveToBrokerTask:
                             message_topic = f"sharc/{from_mac}/evt/avail"
                             message_payload = {
                                 "seq": message_sequence,
-                                "v": True if message_segments[3] == 1 else False,
+                                "v": True if message_segments[3] == "1" else False,
                                 "p2p": True
                             }
                         elif message_type == 'EVT' and message_subtype == 'IO':
