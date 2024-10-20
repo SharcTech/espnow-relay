@@ -97,7 +97,7 @@ class MaintainPeerList:
             await asyncio.sleep(10)
             for peer in self._peers:
                 # print(f"{peer}, ping: {self._peers[peer]['ping']}, pong:{self._peers[peer]['pong']}")
-                if self._peers[peer]['alive'] is True and self._peers[peer]['pong'] < self._peers[peer]['ping'] and time.monotonic() - self._peers[peer]['ping'] > 9:
+                if self._peers[peer]['pong'] < self._peers[peer]['ping'] and time.monotonic() - self._peers[peer]['ping'] > 9:
                     delete_list.append(peer)
                     self._logger.warning(f"Peer expired: {peer}")
                     await self.send_death_certificate(peer)
