@@ -53,7 +53,9 @@ class MaintainPeerList:
                         self._logger.debug(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
                     else:
                         self._peers[message['from_mac']] = {
-                            'alive': True
+                            'alive': True if message_segments[3] == 1 else False,
+                            'ping': time.monotonic(),
+                            'pong': time.monotonic()
                         }
                         self._logger.info(f"Peer added: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
             except:
