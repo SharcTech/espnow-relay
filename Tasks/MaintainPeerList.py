@@ -75,6 +75,9 @@ class MaintainPeerList:
                 await self._to_esp_queue.put(message)
                 self._peers[peer]['ping'] = time.monotonic()
 
+                print(self._peers[peer]['ping'])
+                print(self._peers[peer]['pong'])
+
                 if self._peers[peer]['pong'] < self._peers[peer]['ping'] and time.monotonic() - self._peers[peer]['ping'] > 9:
                     self._peers[peer]['alive'] = False
                     self._logger.warning(f"Peer expired: {peer}")
