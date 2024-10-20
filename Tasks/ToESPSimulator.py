@@ -31,6 +31,8 @@ class ToESPSimulator:
                 'from_mac': "FF:FF:FF:FF:FF:FF",
                 'to_mac': "FF:FF:FF:FF:FF:FF",
                 'message': b'|0|CMD|PING'
+                #TODO
+                #'message': b'|0|CMD|ACT|PING'
             }
             await self._to_esp_queue.put(message)
 
