@@ -53,7 +53,7 @@ class MaintainPeerList:
                         self._logger.debug(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
                     else:
                         self._peers[message['from_mac']] = {
-                            'alive': True if message_segments[3] == 1 else False,
+                            'alive': True,
                             'ping': time.monotonic(),
                             'pong': time.monotonic()
                         }
@@ -69,10 +69,18 @@ class MaintainPeerList:
             for peer in self._peers:
                 print(f"{peer}, ping: {self._peers[peer]['ping']}, pong:{self._peers[peer]['pong']}")
 
-                if self._peers[peer]['pong'] < self._peers[peer]['ping'] and time.monotonic() - self._peers[peer]['ping'] > 9:
+                if self._peers[peer]['alive'] is True and self._peers[peer]['pong'] < self._peers[peer]['ping'] and time.monotonic() - self._peers[peer]['ping'] > 9:
                     self._peers[peer]['alive'] = False
                     self._logger.warning(f"Peer expired: {peer}")
+                    # fake death certificate
+                    message = {
+                        'from_mac': peer,
+                        'to_mac': "FF:FF:FF:FF:FF:FF",
+                        'message': b'|0|EVT|AVAIL|0'
+                    }
+                    await self._from_esp_queue.put(message)
 
+                # send ping to esp
                 message = {
                     'from_mac': "FF:FF:FF:FF:FF:FF",
                     'to_mac': peer,
