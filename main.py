@@ -42,10 +42,8 @@ async def main():
 
     await asyncio.gather(*tasks)
 
-    from_esp_queue.close()
-    to_esp_queue.close()
-
-
+    await from_esp_queue.close()
+    await to_esp_queue.close()
 
 
 if __name__ in ["__main__"]:
