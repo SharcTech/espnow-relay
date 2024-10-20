@@ -72,8 +72,8 @@ class MaintainPeerList:
             try:
                 message_segments = [item for item in message['message'].decode('utf-8').split("|") if item]
 
-                if message_segments[2].upper() == 'AVAIL':
-                    self.upsert_peer(message['from_mac'], True if message_segments[3] == "1" else False)
+                if message_segments[2].upper() == 'AVAIL' and message_segments[3] == "1":
+                    self.upsert_peer(message['from_mac'], True)
 
                 elif message_segments[2].upper() == 'ACK':
                     if message['from_mac'] not in self._peers:
