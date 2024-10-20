@@ -32,7 +32,8 @@ async def main():
 
     from Tasks.MaintainPeerList import MaintainPeerList
     tasks.append(asyncio.create_task(MaintainPeerList(
-        from_esp_queue=from_esp_queue
+        from_esp_queue=from_esp_queue,
+        to_esp_queue=to_esp_queue
     ).run()))
 
     from Tasks.ToESPSimulator import ToESPSimulator
