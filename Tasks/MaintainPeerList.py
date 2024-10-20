@@ -31,20 +31,20 @@ class MaintainPeerList:
                 if message_segments[2].upper() == 'AVAIL':
                     if message['from_mac'] in self._peers:
                         self._peers[message['from_mac']]['alive'] = True if message_segments[3] == 1 else False
-                        self._logger.info(f"Peer added: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
+                        self._logger.info(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
                     else:
                         self._peers[message['from_mac']] = {
                             'alive': True if message_segments[3] == 1 else False
                         }
-                        self._logger.info(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
+                        self._logger.info(f"Peer added: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
                 else:
                     if message['from_mac'] in self._peers:
                         self._peers[message['from_mac']]['alive'] = True
-                        self._logger.info(f"Peer added: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
+                        self._logger.debug(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
                     else:
                         self._peers[message['from_mac']] = {
                             'alive': True
                         }
-                        self._logger.info(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
+                        self._logger.info(f"Peer added: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
             except:
                 self._logger.warning("[receive_task] failed parser, message:%s", message['message'])
