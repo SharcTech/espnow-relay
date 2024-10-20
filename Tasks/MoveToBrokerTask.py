@@ -93,9 +93,9 @@ class MoveToBrokerTask:
                             }
 
                         await client.publish(message_topic, json.dumps(message_payload), retain=message_retain)
-                        self._logger.debug("[broker] sent topic:%s, payload:%s",message_topic, message_payload)
+                        self._logger.info("[broker] sent topic:%s, payload:%s",message_topic, message_payload)
                     except:
-                        self._logger.warn("[broker] failed parser, message:%s", message['message'])
+                        self._logger.warning("[broker] failed parser, message:%s", message['message'])
 
         except MqttError as e:
             self._logger.error("[broker] failed")
