@@ -25,46 +25,66 @@ class MaintainPeerList:
     async def _setup_task(self):
         self._logger.info("[setup]")
 
+    async def send_ping(self, peer):
+        message = {
+            'from_mac': "FF:FF:FF:FF:FF:FF",
+            'to_mac': peer,
+            'message': b'|0|CMD|PING'
+        }
+        await self._to_esp_queue.put(message)
+
+    async def send_birth_certificate(self, peer):
+        message = {
+            'from_mac': peer,
+            'to_mac': "FF:FF:FF:FF:FF:FF",
+            'message': b'|0|EVT|AVAIL|1'
+        }
+        await self._from_esp_queue.put(message)
+        self._logger.info(f"Fake birth certificate: {peer}")
+
+    async def send_death_certificate(self, peer):
+        message = {
+            'from_mac': peer,
+            'to_mac': "FF:FF:FF:FF:FF:FF",
+            'message': b'|0|EVT|AVAIL|0'
+        }
+        await self._from_esp_queue.put(message)
+        self._logger.info(f"Fake death certificate: {peer}")
+
+    def upsert_peer(self, peer, is_alive):
+        if peer in self._peers:
+            self._peers[peer]['alive'] = is_alive
+            self._peers[peer]['pong'] = time.monotonic()
+            self._logger.debug(f"Peer updated: {peer}, Alive: {self._peers[peer]['alive']}")
+        else:
+            self._peers[peer] = {
+                'alive': is_alive,
+                'ping': time.monotonic(),
+                'pong': time.monotonic()
+            }
+            self._logger.info(f"Peer added: {peer}, Alive: {self._peers[peer]['alive']}")
+
     async def _receive_task(self):
         self._logger.info("[receive_task]")
 
         async for message in self._from_esp_queue.subscribe():
             try:
                 message_segments = [item for item in message['message'].decode('utf-8').split("|") if item]
+
                 if message_segments[2].upper() == 'AVAIL':
-                    if message['from_mac'] in self._peers:
-                        self._peers[message['from_mac']]['alive'] = True if message_segments[3] == 1 else False
-                        self._logger.info(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
-                    else:
-                        self._peers[message['from_mac']] = {
-                            'alive': True if message_segments[3] == 1 else False,
-                            'ping': time.monotonic(),
-                            'pong': time.monotonic()
-                        }
-                        self._logger.info(f"Peer added: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
+                    self.upsert_peer(message['from_mac'], True if message_segments[3] == 1 else False)
+
                 elif message_segments[2].upper() == 'ACK':
-                    if message['from_mac'] in self._peers:
-                        self._peers[message['from_mac']]['alive'] = True
-                        self._peers[message['from_mac']]['pong'] = time.monotonic()
-                        self._logger.info(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
+                    if message['from_mac'] not in self._peers:
+                        await self.send_birth_certificate(message['from_mac'])
+
+                    self.upsert_peer(message['from_mac'], True)
+
                 else:
-                    if message['from_mac'] in self._peers:
-                        self._peers[message['from_mac']]['alive'] = True
-                        self._logger.debug(f"Peer updated: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
-                    else:
-                        self._peers[message['from_mac']] = {
-                            'alive': True,
-                            'ping': time.monotonic(),
-                            'pong': time.monotonic()
-                        }
-                        self._logger.info(f"Peer added: {message['from_mac']}, Alive: {self._peers[message['from_mac']]['alive']}")
-                        # fake birth certificate
-                        message = {
-                            'from_mac': message['from_mac'],
-                            'to_mac': "FF:FF:FF:FF:FF:FF",
-                            'message': b'|0|EVT|AVAIL|1'
-                        }
-                        await self._from_esp_queue.put(message)
+                    if message['from_mac'] not in self._peers:
+                        await self.send_birth_certificate(message['from_mac'])
+
+                    self.upsert_peer(message['from_mac'], True)
             except:
                 self._logger.warning("[receive_task] failed parser, message:%s", message['message'])
 
@@ -79,19 +99,6 @@ class MaintainPeerList:
                 if self._peers[peer]['alive'] is True and self._peers[peer]['pong'] < self._peers[peer]['ping'] and time.monotonic() - self._peers[peer]['ping'] > 9:
                     self._peers[peer]['alive'] = False
                     self._logger.warning(f"Peer expired: {peer}")
-                    # fake death certificate
-                    message = {
-                        'from_mac': peer,
-                        'to_mac': "FF:FF:FF:FF:FF:FF",
-                        'message': b'|0|EVT|AVAIL|0'
-                    }
-                    await self._from_esp_queue.put(message)
-
-                # send ping to esp
-                message = {
-                    'from_mac': "FF:FF:FF:FF:FF:FF",
-                    'to_mac': peer,
-                    'message': b'|0|CMD|PING'
-                }
-                await self._to_esp_queue.put(message)
+                    await self.send_death_certificate(peer)
+                await self.send_ping(peer)
                 self._peers[peer]['ping'] = time.monotonic()
