@@ -32,11 +32,11 @@ class ESPNOWTask:
         self._logger.info("[receive_task]")
 
         async for message in self._to_esp_queue.subscribe():
-            print("ESP-NOW SEND to: %s, msg: %s" % (message["to_mac"], message["message"]))
+            self._logger.info("ESP-NOW SEND to: %s, msg: %s" % (message["to_mac"], message["message"]))
             self._espnow.send(message["to_mac"], message["message"])
 
     def _espnow_message_callback(self, from_mac, to_mac, msg):
-        print("ESP-NOW RECV from: %s, to: %s, msg: %s" % (from_mac, to_mac, msg))
+        self._logger.info("ESP-NOW RECV from: %s, to: %s, msg: %s" % (from_mac, to_mac, msg))
         message = {
             "from_mac": from_mac,
             "to_mac": to_mac,

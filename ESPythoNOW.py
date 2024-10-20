@@ -105,13 +105,13 @@ class ESPythoNow:
             filter=self.filter,
             started_callback=lambda: self.startup_event.set())
         self.listener.start()
-        print(self.listener.exception)
+        print(f"AsyncSniffer started.  Exception:{self.listener.exception}")
 
         if self.startup_event.wait(timeout=1):
-            print(self.listener.running)
+            print(f"AsyncSniffer running: {self.listener.running}")
             return True
         else:
-            print("Error starting listener")
+            print("Error starting AsyncSniffer")
             return False
 
     # Process incoming ESP-NOW packets
