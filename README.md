@@ -6,11 +6,18 @@ Relay ESPNOW messages to and from an MQTT broker.
 
 Supported Events:
 - `avail`
+    - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#mqtt-connect
+    - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#mqtt-disconnect
 - `io`
+    - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#sensor-values
 
 Supported Commands
-- `device.reset`
-- `io.publish`
+- `action`: `device.reset`
+    - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#device-reset
+- `action`: `io.publish`
+    - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#publish-io-data
+- `cfg`
+    - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#configuration-changes
 
 ## ESPythoNOW Setup
 
@@ -28,7 +35,7 @@ git clone https://$(cat ~/secret.ghuser):$(cat ~/secret.ghpat)@github.com/SharcT
 ## build image
 
 ```
-export BUILD_VERSION=1.8.1
+export BUILD_VERSION=1.8.2
 docker build -f ~/espnow-relay/Dockerfile --tag=ladder99/espnow-relay:latest --tag=ladder99/espnow-relay:$BUILD_VERSION ~/espnow-relay
 cat ~/secret.dhpass| docker login --username ladder99 --password-stdin
 docker push ladder99/espnow-relay --all-tags

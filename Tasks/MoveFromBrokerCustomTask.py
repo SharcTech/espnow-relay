@@ -61,12 +61,12 @@ class MoveFromBrokerCustomTask:
                 async for message in client.messages:
                     topic = message.topic.value
                     payload = message.payload.decode('utf-8')
-                    self._logger.debug("received on:%s, data:%s", topic, payload)
+                    self._logger.info("received on:%s, data:%s", topic, payload)
 
                     try:
-                        serial = message["topic"].split("/", 2)[1]
-                        command = message["topic"].split("/", 3)[-1]
-                        payload = json.loads(message["payload"])
+                        serial = topic.split("/", 2)[1]
+                        command = topic.split("/", 3)[-1]
+                        payload = json.loads(payload)
                         identifier = payload["id"]
                         command_payload = payload["v"]
                         mac_addr = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2))
