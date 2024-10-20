@@ -67,6 +67,14 @@ class MaintainPeerList:
         while True:
             await asyncio.sleep(10)
             for peer in self._peers:
+                message = {
+                    'from_mac': "FF:FF:FF:FF:FF:FF",
+                    'to_mac': peer,
+                    'message': b'|0|CMD|PING'
+                }
+                await self._to_esp_queue.put(message)
+                self._peers[peer]['ping'] = time.monotonic()
+
                 if self._peers[peer]['pong'] < self._peers[peer]['ping'] and time.monotonic() - self._peers[peer]['ping'] > 9:
                     self._peers[peer]['alive'] = False
                     self._logger.warning(f"Peer expired: {peer}")

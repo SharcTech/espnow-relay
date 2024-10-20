@@ -36,10 +36,10 @@ async def main():
         to_esp_queue=to_esp_queue
     ).run()))
 
-    from Tasks.ToESPSimulator import ToESPSimulator
-    tasks.append(asyncio.create_task(ToESPSimulator(
-        to_esp_queue=to_esp_queue
-    ).run()))
+    #from Tasks.ToESPSimulator import ToESPSimulator
+    #tasks.append(asyncio.create_task(ToESPSimulator(
+    #    to_esp_queue=to_esp_queue
+    #).run()))
 
     await asyncio.gather(*tasks)
 
