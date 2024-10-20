@@ -24,14 +24,13 @@ class MaintainPeerList:
 
     async def _setup_task(self):
         self._logger.info("[setup]")
+        await self.send_ping("FF:FF:FF:FF:FF:FF")
 
     async def send_ping(self, peer):
         message = {
             'from_mac': "FF:FF:FF:FF:FF:FF",
             'to_mac': peer,
-            'message': b'|0|CMD|PING'
-            # TODO
-            # 'message': b'|0|CMD|ACT|PING'
+            'message': b'|0|CMD|ACT|PING'
         }
         await self._to_esp_queue.put(message)
 
