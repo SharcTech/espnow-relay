@@ -7,15 +7,15 @@ import aiomqtt
 from aiomqtt import MqttError
 
 
-class MoveToBrokerCustomTask:
-    def __init__(self, from_esp_queue, broker_ip, broker_port, broker_username, broker_password):
+class MoveFromBrokerCustomTask:
+    def __init__(self, to_esp_queue, broker_ip, broker_port, broker_username, broker_password):
         self._broker_ip = broker_ip
         self._broker_port = broker_port
         self._broker_username = broker_username
         self._broker_password = broker_password
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
-        self._queue: MultisubscriberQueue = from_esp_queue
+        self._queue: MultisubscriberQueue = to_esp_queue
 
     async def run(self):
         self._logger.info("[run]")
@@ -33,68 +33,72 @@ class MoveToBrokerCustomTask:
         self._logger.info("[broker] connecting")
 
         try:
-            async with aiomqtt.Client(
+            topics = [
+                {
+                    "topic": "sharc/+/cmd/#",
+                    "qos": 0
+                }
+            ]
+
+            client = aiomqtt.Client(
                     hostname=self._broker_ip,
                     port=self._broker_port,
                     username=self._broker_username,
                     password=self._broker_password,
                     identifier=self._unique_id,
                     clean_session=True,
-                    keepalive=60) as client:
+                    keepalive=60)
 
-                self._logger.info("[broker] connected")
+            async with client:
+                self.logger.info("connected")
 
-                async for message in self._queue.subscribe():
+                for topic in topics:
+                    self.logger.debug("subscribing: %s", topic["topic"])
+                    await client.subscribe(
+                        topic=topic["topic"],
+                        qos=topic["qos"] if "qos" in topic else 0)
+
+                async for message in client.messages:
+                    topic = message.topic.value
+                    payload = message.payload.decode('utf-8')
+                    self.logger.debug("received on:%s, data:%s", topic, payload)
+
                     try:
-                        from_mac = message['from_mac'].replace(":", "").lower()
-                        message_segments = [item for item in message['message'].decode('utf-8').split("|") if item]
-                        message_topic = None
-                        message_payload = None
-                        message_retain = False
-                        message_sequence = message_segments[0]
-                        message_type = message_segments[1].upper()
-                        message_subtype = message_segments[2].upper()
-                        if message_type == 'EVT' and message_subtype == 'AVAIL':
-                            message_retain = True
-                            message_topic = f"sharc/{from_mac}/evt/avail"
-                            message_payload = {
-                                "seq": message_sequence,
-                                "v": True if message_segments[3] == "1" else False,
-                                "p2p": True
-                            }
-                        elif message_type == 'EVT' and message_subtype == 'IO':
-                            sensor_type = message_segments[3].upper()
-                            sensor_id = 's0' if sensor_type == 'PNP' else \
-                                                's1' if sensor_type == 'NPN' else \
-                                                's2' if sensor_type == '0-10V' else \
-                                                's3' if sensor_type == '4-20MA' else \
-                                                sensor_type.lower()
-                            message_topic = f"sharc/{from_mac}/evt/io/{sensor_id}"
-                            message_payload = {
-                                "seq": message_segments[0],
-                                "v": message_segments[4],
-                                "d": message_segments[5]
-                            }
-                        elif message_type == 'EVT' and message_subtype == 'ACK':
-                            message_topic = f"sharc/{from_mac}/evt/ack"
-                            message_payload = {
-                                "seq": message_segments[0],
-                                "v": {
-                                    "id": message_segments[3],
-                                    "rc": 0
-                                }
-                            }
-                        else:
-                            message_topic = f"sharc/{from_mac}/unk"
-                            message_payload = {
-                                "seq": message_segments[0],
-                                "v": message_segments
-                            }
+                        serial = message["topic"].split("/", 2)[1]
+                        command = message["topic"].split("/", 3)[-1]
+                        payload = json.loads(message["payload"])
+                        identifier = payload["id"]
+                        command_payload = payload["v"]
+                        mac_addr = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2))
 
-                        await client.publish(message_topic, json.dumps(message_payload), retain=message_retain)
-                        self._logger.info("[broker] sent topic:%s, payload:%s",message_topic, message_payload)
-                    except:
-                        self._logger.warning("[broker] failed parser, message:%s", message['message'])
+                        if command == 'action':
+                            if "device.reset" in command_payload:
+                                message = {
+                                    'from_mac': "FF:FF:FF:FF:FF:FF",
+                                    'to_mac': mac_addr,
+                                    'message': b'|0|CMD|ACT|RST'
+                                }
+                                await self._queue.put(message)
+                            elif "io.publish" in command_payload:
+                                message = {
+                                    'from_mac': "FF:FF:FF:FF:FF:FF",
+                                    'to_mac': mac_addr,
+                                    'message': b'|0|CMD|ACT|IO'
+                                }
+                                await self._queue.put(message)
+                            else:
+                                pass
+                        elif command == 'cfg':
+                            for key in command_payload:
+                                message = {
+                                    'from_mac': "FF:FF:FF:FF:FF:FF",
+                                    'to_mac': mac_addr,
+                                    'message': b'|0|CMD|CFG|%s|%s' % (key, command_payload[key])
+                                }
+                                await self._queue.put(message)
+
+                    except Exception as e:
+                        self._logger.exception("[broker] command parser failed")
 
         except MqttError as e:
             self._logger.error("[broker] failed")
