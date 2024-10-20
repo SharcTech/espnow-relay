@@ -1,15 +1,15 @@
 import uuid
 import logging
 import asyncio
-from asyncio import Queue
+from asyncio_multisubscriber_queue import MultisubscriberQueue
 from ESPythoNOW import *
 
 
 class ESPNOWTask:
     def __init__(self, interface, to_esp_queue, from_esp_queue):
         self._interface = interface
-        self._to_esp_queue: Queue = to_esp_queue
-        self._from_esp_queue: Queue = from_esp_queue
+        self._to_esp_queue: MultisubscriberQueue = to_esp_queue
+        self._from_esp_queue: MultisubscriberQueue = from_esp_queue
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
         self._espnow = None
@@ -32,7 +32,7 @@ class ESPNOWTask:
         self._logger.info("[receive_task]")
 
         while True:
-            message = await self._to_esp_queue.get()
+            message = await self._to_esp_queue.subscribe()
             print("ESP-NOW SEND to: %s, msg: %s" % (message["to_mac"], message["message"]))
             self._espnow.send(message["to_mac"], message["message"])
 
@@ -44,4 +44,4 @@ class ESPNOWTask:
             "message": msg
         }
 
-        self._from_esp_queue.put_nowait(message)
+        self._from_esp_queue.put(message)

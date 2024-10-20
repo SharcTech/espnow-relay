@@ -1,12 +1,12 @@
 import uuid
 import logging
 import asyncio
-from asyncio import Queue
+from asyncio_multisubscriber_queue import MultisubscriberQueue
 
 
 class ToESPSimulator:
     def __init__(self, to_esp_queue):
-        self._to_esp_queue: Queue = to_esp_queue
+        self._to_esp_queue: MultisubscriberQueue = to_esp_queue
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
         self._counter = 100

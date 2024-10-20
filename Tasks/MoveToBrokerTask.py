@@ -2,8 +2,7 @@ import uuid
 import json
 import logging
 import asyncio
-from asyncio import Queue
-from selectors import SelectSelector
+from asyncio_multisubscriber_queue import MultisubscriberQueue
 
 import aiomqtt
 from aiomqtt import MqttError
@@ -17,7 +16,7 @@ class MoveToBrokerTask:
         self._broker_password = broker_password
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
-        self._queue: Queue = from_esp_queue
+        self._queue: MultisubscriberQueue = from_esp_queue
 
     async def run(self):
         self._logger.info("[run]")
@@ -47,7 +46,7 @@ class MoveToBrokerTask:
                 self._logger.info("[broker] connected")
 
                 while True:
-                    message = await self._queue.get()
+                    message = await self._queue.subscribe()
                     from_mac = message['from_mac'].replace(":","").lower()
                     message_segments = [item for item in message['message'].split("|") if item]
 

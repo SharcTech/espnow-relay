@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 import asyncio
-from asyncio import Queue
+from asyncio_multisubscriber_queue import MultisubscriberQueue
 
 logging.basicConfig(level=int(os.getenv("LOG_LEVEL", 20)))
 logger = logging.getLogger("main")
@@ -11,8 +11,8 @@ logger.info("espnow-relay starting")
 async def main():
     tasks = []
 
-    from_esp_queue = Queue()
-    to_esp_queue = Queue()
+    from_esp_queue = MultisubscriberQueue()
+    to_esp_queue = MultisubscriberQueue()
 
     from Tasks.ESPNOWTask import ESPNOWTask
     tasks.append(asyncio.create_task(ESPNOWTask(
