@@ -74,6 +74,7 @@ class MoveToBrokerCustomTask:
                             message_payload = {
                                 "seq": int(message_segments[0]),
                                 "v": float(message_segments[4]),
+                                "u": "unknown",
                                 "d": int(message_segments[5])
                             }
                         elif message_type == 'EVT' and message_subtype == 'ACK':
