@@ -59,7 +59,7 @@ class MoveToBrokerCustomTask:
                             message_retain = True
                             message_topic = f"sharc/{from_mac}/evt/avail"
                             message_payload = {
-                                "seq": message_sequence,
+                                "seq": int(message_sequence),
                                 "v": True if message_segments[3] == "1" else False,
                                 "p2p": True
                             }
@@ -72,14 +72,14 @@ class MoveToBrokerCustomTask:
                                                 sensor_type.lower()
                             message_topic = f"sharc/{from_mac}/evt/io/{sensor_id}"
                             message_payload = {
-                                "seq": message_segments[0],
-                                "v": message_segments[4],
-                                "d": message_segments[5]
+                                "seq": int(message_segments[0]),
+                                "v": float(message_segments[4]),
+                                "d": int(message_segments[5])
                             }
                         elif message_type == 'EVT' and message_subtype == 'ACK':
                             message_topic = f"sharc/{from_mac}/evt/ack"
                             message_payload = {
-                                "seq": message_segments[0],
+                                "seq": int(message_segments[0]),
                                 "v": {
                                     "id": message_segments[3],
                                     "rc": 0
@@ -88,7 +88,7 @@ class MoveToBrokerCustomTask:
                         else:
                             message_topic = f"sharc/{from_mac}/unk"
                             message_payload = {
-                                "seq": message_segments[0],
+                                "seq": int(message_segments[0]),
                                 "v": message_segments
                             }
 
