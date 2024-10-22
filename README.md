@@ -16,6 +16,8 @@ Supported Commands
     - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#device-reset
 - `action`: `io.publish`
     - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#publish-io-data
+- `action`: `di.counter.reset`
+    - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#reset-digital-input-counters
 - `cfg`
     - https://github.com/SharcTech/sharc-support?tab=readme-ov-file#configuration-changes
 
