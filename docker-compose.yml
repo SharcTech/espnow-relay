@@ -21,6 +21,7 @@ services:
       - BROKER_PASSWORD=
       - ESP_TO_BROKER_CUSTOM=1
       - BROKER_TO_ESP_CUSTOM=1
+      - DROP_INCOMING_INVALID_PEER=1
     stop_grace_period: 10s
     stop_signal: SIGTERM
     logging:

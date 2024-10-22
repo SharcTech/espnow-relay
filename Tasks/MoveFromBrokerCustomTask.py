@@ -8,9 +8,10 @@ from aiomqtt import MqttError
 
 
 class MoveFromBrokerCustomTask:
-    def __init__(self, to_esp_queue, peer_list, broker_ip, broker_port, broker_username, broker_password):
+    def __init__(self, to_esp_queue, peer_list, drop_invalid_peer, broker_ip, broker_port, broker_username, broker_password):
         self._to_esp_queue: MultisubscriberQueue = to_esp_queue
         self._peer_list = peer_list
+        self._drop_invalid_peer = drop_invalid_peer
         self._broker_ip = broker_ip
         self._broker_port = broker_port
         self._broker_username = broker_username
@@ -67,10 +68,11 @@ class MoveFromBrokerCustomTask:
                     try:
                         serial = topic.split("/", 2)[1]
 
-                        serial_mac = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2)).upper()
-                        if serial_mac not in self._peer_list:
-                            self._logger.info("[broker] drop incoming message, %s not an active peer" % serial_mac)
-                            continue
+                        if self._drop_invalid_peer == 1:
+                            serial_mac = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2)).upper()
+                            if serial_mac not in self._peer_list:
+                                self._logger.info("[broker] drop incoming message, %s not an active peer" % serial_mac)
+                                continue
 
                         command = topic.split("/", 3)[-1]
                         payload = json.loads(payload)

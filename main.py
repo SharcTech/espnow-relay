@@ -53,6 +53,7 @@ async def main():
         tasks.append(asyncio.create_task(MoveFromBrokerCustomTask(
             to_esp_queue=to_esp_queue,
             peer_list=peer_list,
+            drop_invalid_peer=int(os.getenv("DROP_INCOMING_INVALID_PEER", 1)),
             broker_ip=str(os.getenv("BROKER_IP", "sharc.tech")),
             broker_port=int(os.getenv("BROKER_PORT", 1883)),
             broker_username=str(os.getenv("BROKER_USERNAME", None)),
