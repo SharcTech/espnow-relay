@@ -95,6 +95,13 @@ class MoveFromBrokerCustomTask:
                                     'message': b'|0|CMD|ACT|IO'
                                 }
                                 await self._to_esp_queue.put(message)
+                            elif "di.counter.reset" in command_payload:
+                                message = {
+                                    'from_mac': "FF:FF:FF:FF:FF:FF",
+                                    'to_mac': mac_addr,
+                                    'message': b'|0|CMD|ACT|COUNTER|0'
+                                }
+                                await self._to_esp_queue.put(message)
                             else:
                                 pass
                         elif command == 'cfg':
