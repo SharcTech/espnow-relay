@@ -6,12 +6,12 @@ from libs.asyncio_multisubscriber_queue import MultisubscriberQueue
 
 
 class MaintainPeerList:
-    def __init__(self, from_esp_queue, to_esp_queue):
+    def __init__(self, from_esp_queue, to_esp_queue, peer_list):
         self._from_esp_queue: MultisubscriberQueue = from_esp_queue
         self._to_esp_queue: MultisubscriberQueue = to_esp_queue
+        self._peer_list = peer_list
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
-        self._peers = {}
 
     async def run(self):
         self._logger.info("[run]")
@@ -53,12 +53,12 @@ class MaintainPeerList:
         self._logger.info(f"Fake death certificate: {peer}")
 
     def upsert_peer(self, peer, is_alive):
-        if peer in self._peers:
-            self._peers[peer]['alive'] = is_alive
-            self._peers[peer]['pong'] = time.monotonic()
+        if peer in self._peer_list:
+            self._peer_list[peer]['alive'] = is_alive
+            self._peer_list[peer]['pong'] = time.monotonic()
             self._logger.debug(f"Peer updated: {peer}, Alive: {is_alive}")
         else:
-            self._peers[peer] = {
+            self._peer_list[peer] = {
                 'alive': is_alive,
                 'ping': time.monotonic(),
                 'pong': time.monotonic()
@@ -77,13 +77,13 @@ class MaintainPeerList:
                         self.upsert_peer(message['from_mac'], True)
 
                 elif message_segments[2].upper() == 'ACK':
-                    if message['from_mac'] not in self._peers:
+                    if message['from_mac'] not in self._peer_list:
                         await self.send_birth_certificate(message['from_mac'])
 
                     self.upsert_peer(message['from_mac'], True)
 
                 else:
-                    if message['from_mac'] not in self._peers:
+                    if message['from_mac'] not in self._peer_list:
                         await self.send_birth_certificate(message['from_mac'])
 
                     self.upsert_peer(message['from_mac'], True)
@@ -96,15 +96,15 @@ class MaintainPeerList:
         while True:
             delete_list = []
             await asyncio.sleep(10)
-            for peer in self._peers:
+            for peer in self._peer_list:
                 # print(f"{peer}, ping: {self._peers[peer]['ping']}, pong:{self._peers[peer]['pong']}")
-                if self._peers[peer]['pong'] < self._peers[peer]['ping'] and time.monotonic() - self._peers[peer]['ping'] > 9:
+                if self._peer_list[peer]['pong'] < self._peer_list[peer]['ping'] and time.monotonic() - self._peer_list[peer]['ping'] > 9:
                     delete_list.append(peer)
                     self._logger.warning(f"Peer expired: {peer}")
                     await self.send_death_certificate(peer)
                 else:
                     await self.send_ping(peer)
-                    self._peers[peer]['ping'] = time.monotonic()
+                    self._peer_list[peer]['ping'] = time.monotonic()
 
             for peer in delete_list:
-                del self._peers[peer]
+                del self._peer_list[peer]

@@ -13,6 +13,7 @@ async def main():
 
     from_esp_queue = MultisubscriberQueue()
     to_esp_queue = MultisubscriberQueue()
+    peer_list = {}
 
     from Tasks.ESPNOWTask import ESPNOWTask
     tasks.append(asyncio.create_task(ESPNOWTask(
@@ -34,6 +35,7 @@ async def main():
         from Tasks.MoveToBrokerCustomTask import MoveToBrokerCustomTask
         tasks.append(asyncio.create_task(MoveToBrokerCustomTask(
             from_esp_queue=from_esp_queue,
+            peer_list=peer_list,
             broker_ip=str(os.getenv("BROKER_IP", "sharc.tech")),
             broker_port=int(os.getenv("BROKER_PORT", 1883)),
             broker_username=str(os.getenv("BROKER_USERNAME", None)),
@@ -43,7 +45,8 @@ async def main():
         from Tasks.MaintainPeerList import MaintainPeerList
         tasks.append(asyncio.create_task(MaintainPeerList(
             from_esp_queue=from_esp_queue,
-            to_esp_queue=to_esp_queue
+            to_esp_queue=to_esp_queue,
+            peer_list=peer_list
         ).run()))
 
     if int(os.getenv("BROKER_TO_ESP_CUSTOM", 0)) == 1:

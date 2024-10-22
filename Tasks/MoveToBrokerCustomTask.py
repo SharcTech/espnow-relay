@@ -9,13 +9,14 @@ from aiomqtt import MqttError
 
 class MoveToBrokerCustomTask:
     def __init__(self, from_esp_queue, broker_ip, broker_port, broker_username, broker_password):
+        self._from_esp_queue: MultisubscriberQueue = from_esp_queue
         self._broker_ip = broker_ip
         self._broker_port = broker_port
         self._broker_username = broker_username
         self._broker_password = broker_password
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
-        self._queue: MultisubscriberQueue = from_esp_queue
+
 
     async def run(self):
         self._logger.info("[run]")
@@ -44,7 +45,7 @@ class MoveToBrokerCustomTask:
 
                 self._logger.info("[broker] connected")
 
-                async for message in self._queue.subscribe():
+                async for message in self._from_esp_queue.subscribe():
                     try:
                         from_mac = message['from_mac'].replace(":", "").lower()
                         message_segments = [item for item in message['message'].decode('utf-8').split("|") if item]
