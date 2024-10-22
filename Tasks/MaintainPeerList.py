@@ -88,7 +88,7 @@ class MaintainPeerList:
 
                     self.upsert_peer(message['from_mac'], True)
             except:
-                self._logger.warning("[receive_task] failed parser, message:%s", message['message'])
+                self._logger.exception("[receive_task] failed parser, message: %s" % message['message'])
 
     async def _expire_task(self):
         self._logger.info("[expire_task]")

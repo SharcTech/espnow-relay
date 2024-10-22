@@ -107,7 +107,7 @@ class MoveFromBrokerCustomTask:
                                 await self._to_esp_queue.put(message)
 
                     except Exception as e:
-                        self._logger.exception("[broker] command parser failed")
+                        self._logger.exception("[broker] command parser failed, payload: %s" % payload)
 
         except MqttError as e:
             self._logger.error("[broker] failed")
