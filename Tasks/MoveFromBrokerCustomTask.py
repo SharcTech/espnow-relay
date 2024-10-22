@@ -69,7 +69,7 @@ class MoveFromBrokerCustomTask:
 
                         serial_mac = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2)).upper()
                         if serial_mac not in self._peer_list:
-                            self._logger.info("[broker] drop incoming message, %s not an active peer")
+                            self._logger.info("[broker] drop incoming message, %s not an active peer" % serial_mac)
                             continue
 
                         command = topic.split("/", 3)[-1]
