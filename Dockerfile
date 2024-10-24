@@ -15,6 +15,8 @@ RUN pip install --no-cache-dir --trusted-host pypi.python.org -r requirements.tx
 
 COPY . .
 
+RUN chmod a+x /app/enable_wireless_monitor.sh
+
 ENV PATH=/venv/bin:$PATH
 
 ARG LOG_LEVEL=20
