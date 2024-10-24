@@ -4,7 +4,7 @@ services:
     container_name: espnow-relay
     image: ladder99/espnow-relay:latest
     restart: unless-stopped
-    command: /bin/bash -c '/app/enable_wireless_monitor_mode.sh && python3 -u main.py
+    command: /bin/bash -c '/app/enable_wireless_monitor_mode.sh && python3 -u main.py'
     network_mode: host
     cap_add:
       - NET_ADMIN
