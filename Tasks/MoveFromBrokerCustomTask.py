@@ -2,9 +2,9 @@ import uuid
 import json
 import logging
 import asyncio
+from asyncio import Event, Queue
 from libs.asyncio_multisubscriber_queue import MultisubscriberQueue
-import aiomqtt
-from aiomqtt import MqttError
+from brokers.Subscribing import Subscribing as SubscribingBroker
 
 
 class MoveFromBrokerCustomTask:
@@ -16,6 +16,9 @@ class MoveFromBrokerCustomTask:
         self._broker_port = broker_port
         self._broker_username = broker_username
         self._broker_password = broker_password
+        self._broker_instance = None
+        self._broker_queue = Queue()
+        self._cancellation_event = Event()
         self._unique_id = str(uuid.uuid4())
         self._logger = logging.getLogger(f"({self._unique_id}) {self.__module__}")
 
@@ -25,98 +28,86 @@ class MoveFromBrokerCustomTask:
         setup_task = asyncio.create_task(self._setup_task())
         await asyncio.gather(setup_task)
 
-        broker_task = asyncio.create_task(self._broker_task())
-        await asyncio.gather(broker_task)
+        self._broker_instance = SubscribingBroker(
+            ip=self._broker_ip,
+            port=self._broker_port,
+            user=self._broker_username,
+            password=self._broker_password,
+            client_id=f"{self._unique_id}-source",
+            topics=[
+                {"topic": "sharc/+/cmd/#", "qos": 0}
+            ],
+            reconnect_s=5,
+            message_queue=self._broker_queue,
+            cancellation_event=self._cancellation_event,
+            override_log_level=logging.INFO)
+
+        broker_task = asyncio.create_task(self._broker_instance.run())
+        esp_task = asyncio.create_task(self._esp_task())
+        await asyncio.gather(broker_task, esp_task)
 
     async def _setup_task(self):
         self._logger.info("[setup]")
 
-    async def _broker_task(self):
-        self._logger.info("[broker] connecting")
+    async def _esp_task(self):
+        self._logger.info("[esp] connecting")
 
-        try:
-            topics = [
-                {
-                    "topic": "sharc/+/cmd/#",
-                    "qos": 0
-                }
-            ]
+        while True:
+            broker_message = self._broker_queue.get()
 
-            client = aiomqtt.Client(
-                    hostname=self._broker_ip,
-                    port=self._broker_port,
-                    username=self._broker_username,
-                    password=self._broker_password,
-                    identifier=self._unique_id,
-                    clean_session=True,
-                    keepalive=60)
+            topic = broker_message["topic"]
+            payload = broker_message["payload"]
+            self._logger.info("received on:%s, data:%s", topic, payload)
 
-            async with client:
-                self._logger.info("connected")
+            try:
+                serial = topic.split("/", 2)[1]
 
-                for topic in topics:
-                    self._logger.debug("subscribing: %s", topic["topic"])
-                    await client.subscribe(
-                        topic=topic["topic"],
-                        qos=topic["qos"] if "qos" in topic else 0)
+                if self._drop_invalid_peer == 1:
+                    serial_mac = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2)).upper()
+                    if serial_mac not in self._peer_list:
+                        self._logger.info("[esp] drop incoming message, %s not an active peer" % serial_mac)
+                        continue
 
-                async for message in client.messages:
-                    topic = message.topic.value
-                    payload = message.payload.decode('utf-8')
-                    self._logger.info("received on:%s, data:%s", topic, payload)
+                command = topic.split("/", 3)[-1]
+                payload = json.loads(payload)
+                identifier = payload["id"]
+                command_payload = payload["v"]
+                mac_addr = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2))
 
-                    try:
-                        serial = topic.split("/", 2)[1]
+                if command == 'action':
+                    if "device.reset" in command_payload:
+                        message = {
+                            'from_mac': "FF:FF:FF:FF:FF:FF",
+                            'to_mac': mac_addr,
+                            'message': b'|0|CMD|ACT|RST'
+                        }
+                        await self._to_esp_queue.put(message)
+                    elif "io.publish" in command_payload:
+                        message = {
+                            'from_mac': "FF:FF:FF:FF:FF:FF",
+                            'to_mac': mac_addr,
+                            'message': b'|0|CMD|ACT|IO'
+                        }
+                        await self._to_esp_queue.put(message)
+                    elif "di.counter.reset" in command_payload:
+                        message = {
+                            'from_mac': "FF:FF:FF:FF:FF:FF",
+                            'to_mac': mac_addr,
+                            'message': b'|0|CMD|ACT|COUNTER|0'
+                        }
+                        await self._to_esp_queue.put(message)
+                    else:
+                        pass
+                elif command == 'cfg':
+                    for key in command_payload:
+                        message = {
+                            'from_mac': "FF:FF:FF:FF:FF:FF",
+                            'to_mac': mac_addr,
+                            'message': b'|0|CMD|CFG|%s|%s' % (key, command_payload[key])
+                        }
+                        await self._to_esp_queue.put(message)
 
-                        if self._drop_invalid_peer == 1:
-                            serial_mac = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2)).upper()
-                            if serial_mac not in self._peer_list:
-                                self._logger.info("[broker] drop incoming message, %s not an active peer" % serial_mac)
-                                continue
+            except Exception as e:
+                self._logger.exception("[esp] command parser failed, payload: %s" % payload)
 
-                        command = topic.split("/", 3)[-1]
-                        payload = json.loads(payload)
-                        identifier = payload["id"]
-                        command_payload = payload["v"]
-                        mac_addr = ':'.join(serial[i:i+2] for i in range(0, len(serial), 2))
-
-                        if command == 'action':
-                            if "device.reset" in command_payload:
-                                message = {
-                                    'from_mac': "FF:FF:FF:FF:FF:FF",
-                                    'to_mac': mac_addr,
-                                    'message': b'|0|CMD|ACT|RST'
-                                }
-                                await self._to_esp_queue.put(message)
-                            elif "io.publish" in command_payload:
-                                message = {
-                                    'from_mac': "FF:FF:FF:FF:FF:FF",
-                                    'to_mac': mac_addr,
-                                    'message': b'|0|CMD|ACT|IO'
-                                }
-                                await self._to_esp_queue.put(message)
-                            elif "di.counter.reset" in command_payload:
-                                message = {
-                                    'from_mac': "FF:FF:FF:FF:FF:FF",
-                                    'to_mac': mac_addr,
-                                    'message': b'|0|CMD|ACT|COUNTER|0'
-                                }
-                                await self._to_esp_queue.put(message)
-                            else:
-                                pass
-                        elif command == 'cfg':
-                            for key in command_payload:
-                                message = {
-                                    'from_mac': "FF:FF:FF:FF:FF:FF",
-                                    'to_mac': mac_addr,
-                                    'message': b'|0|CMD|CFG|%s|%s' % (key, command_payload[key])
-                                }
-                                await self._to_esp_queue.put(message)
-
-                    except Exception as e:
-                        self._logger.exception("[broker] command parser failed, payload: %s" % payload)
-
-        except MqttError as e:
-            self._logger.error("[broker] failed")
-
-        self._logger.info("[broker] disconnected")
+        self._logger.info("[esp] disconnected")
