@@ -53,7 +53,7 @@ class MoveFromBrokerCustomTask:
         self._logger.info("[esp] connecting")
 
         while True:
-            broker_message = self._broker_queue.get()
+            broker_message = await self._broker_queue.get()
 
             topic = broker_message["topic"]
             payload = broker_message["payload"]
